@@ -51,7 +51,7 @@ def GenerateFullText(dictionary):
 
     result = ""
     for i, entry in enumerate(dictionary.entries):
-        print("%d %s\n【释义】%s\n【词源】%s\n【语用】%s\n【同义】%s\n" % (
+        print("%s\n【释义】%s\n【词源】%s\n【语用】%s\n【同义】%s\n" % (
             i,
             entry.name,
             entry.explanation,
