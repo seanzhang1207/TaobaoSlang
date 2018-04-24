@@ -1,1 +1,10 @@
+content/__pycache__/
+
 *.xlsx
+*.pyc
+*.json
+*.pyc
+*.pyc
+content/__pycache__/_common.cpython-36.pyc
+content/.DS_Store
+.DS_Store

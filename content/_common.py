@@ -1,3 +1,18 @@
+from pypinyin import lazy_pinyin, Style
+
+
+def latin(word):
+    return ''.join(lazy_pinyin(word, style=Style.NORMAL)).lower()
+
+
+def latinhead(word):
+    return ''.join(lazy_pinyin(word[0], style=Style.TONE2)).lower()
+
+
+def pinyin(word):
+    return ' '.join(lazy_pinyin(word, style=Style.TONE, errors='ignore'))
+
+
 class DictionaryEntry:
     name = None
     explanation = None
@@ -18,7 +33,10 @@ class DictionaryEntry:
                  construction,
                  source,
                  commonsource):
+        self.id = None
         self.name = entrytext
+        self.latin = latin(entrytext)
+        self.pinyin = pinyin(entrytext)
         self.s_explanation = explanation
         self.s_same = same
         self.s_close = close.split(' ') if close else None
@@ -36,6 +54,9 @@ class Dictionary:
 
     def add(self, entry):
         self.entries.append(entry)
+        self.entries.sort(key=lambda x: latinhead(x.name))
+        for i, entry in enumerate(self.entries):
+            entry.id = i
 
     def query(self, **kwargs):
         results = set(self.entries)

@@ -1,4 +1,5 @@
 import argparse
+import json
 
 from parse_xlsx import ParseXLSX
 from trace_entries import GenerateDynamicContent
@@ -27,6 +28,8 @@ print(len(dictionary.query(source=lambda x: x is not None)))
 dictionary = GenerateDynamicContent(dictionary)
 print(len(dictionary.query(source=lambda x: x is not None)))
 
-GenerateFullText(dictionary)
+fulltext = GenerateFullText(dictionary)
 
-
+f = open("output.json", 'w')
+f.write(json.dumps(fulltext))
+f.close()

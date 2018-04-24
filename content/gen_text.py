@@ -1,3 +1,15 @@
+from pypinyin import lazy_pinyin, Style
+from pprint import pprint
+
+
+def latin(word):
+        return ''.join(lazy_pinyin(word, style=Style.NORMAL)).lower()
+
+
+def first(word):
+        return lazy_pinyin(word, style=Style.FIRST_LETTER)[0].upper()
+
+
 def GenerateEtymology(dictionary):
     chsnum = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
     for entry in dictionary.entries:
@@ -40,23 +52,45 @@ def GenerateCloseMeaning(dictionary):
 
 
 def GenerateIndex(dictionary):
-    return ""
+    temp = {}
+    index = {}
+    for entry in dictionary.entries:
+        if not entry.name[0].upper() in temp:
+            temp[entry.name[0].upper()] = []
+        temp[entry.name[0].upper()].append(entry.id)
+
+    for char in temp.keys():
+        if not first(char) in index:
+            index[first(char)] = {}
+        if not latin(char) in index[first(char)]:
+            index[first(char)][latin(char)] = []
+        index[first(char)][latin(char)].append([char, temp[char]])
+
+    pprint(index)
+    return index
 
 
 def GenerateFullText(dictionary):
+    text = {}
+
     dictionary = GenerateEtymology(dictionary)
     dictionary = GenerateSameMeaning(dictionary)
     dictionary = GenerateCloseMeaning(dictionary)
     dictionary = GenerateUsage(dictionary)
 
-    result = ""
-    for i, entry in enumerate(dictionary.entries):
-        print("%s\n【释义】%s\n【词源】%s\n【语用】%s\n【同义】%s\n" % (
-            i,
-            entry.name,
-            entry.explanation,
-            entry.etymology,
-            entry.usage,
-            entry.synonym))
+    text['index'] = GenerateIndex(dictionary)
+    text['entries'] = []
 
-    return result
+    for i, entry in enumerate(dictionary.entries):
+        text['entries'].append({
+                               'id': entry.id,
+                               'name': entry.name,
+                               'pinyin': entry.pinyin,
+                               'explanation': entry.explanation,
+                               'etymology': entry.etymology,
+                               'usage': entry.usage,
+                               'synonym': entry.synonym
+                               })
+    pprint(text)
+
+    return text
