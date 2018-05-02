@@ -1,5 +1,6 @@
 import argparse
 import json
+from dicttoxml import dicttoxml
 
 from parse_xlsx import ParseXLSX
 from trace_entries import GenerateDynamicContent
@@ -30,6 +31,36 @@ print(len(dictionary.query(source=lambda x: x is not None)))
 
 fulltext = GenerateFullText(dictionary)
 
+
+def js_list(encoder, data):
+    pairs = []
+    for v in data:
+        pairs.append(js_val(encoder, v))
+    return "[" + ", ".join(pairs) + "]"
+
+
+def js_dict(encoder, data):
+    pairs = []
+    for k, v in data.items():
+        pairs.append(k + ": " + js_val(encoder, v))
+    return "{" + ", ".join(pairs) + "}"
+
+
+def js_val(encoder, data):
+    if isinstance(data, dict):
+        val = js_dict(encoder, data)
+    elif isinstance(data, list):
+        val = js_list(encoder, data)
+    else:
+        val = encoder.encode(data)
+    return val
+
+
+encoder = json.JSONEncoder(ensure_ascii=False)
+print(js_val(encoder, fulltext))
+
+
 f = open("output.json", 'w')
-f.write(json.dumps(fulltext))
+f.write("content = ")
+f.write(js_val(encoder, fulltext))
 f.close()
