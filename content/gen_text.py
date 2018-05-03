@@ -66,7 +66,7 @@ def GenerateIndex(dictionary):
             index[first(char)][latin(char)] = []
         index[first(char)][latin(char)].append([char, temp[char]])
 
-    pprint(index)
+    # pprint(index)
     return index
 
 
@@ -91,6 +91,6 @@ def GenerateFullText(dictionary):
                                'usage': entry.usage,
                                'synonym': entry.synonym
                                })
-    pprint(text)
+    # pprint(text)
 
     return text

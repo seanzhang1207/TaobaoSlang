@@ -22,12 +22,12 @@ args = parser.parse_args()
 
 dictionary = ParseXLSX(args.xlsx_file)
 
-print(len(dictionary.query(source=lambda x: x is not None)))
+# print(len(dictionary.query(source=lambda x: x is not None)))
 
 # print(len(dictionary.query(name=lambda x: x is not None)))
 
-dictionary = GenerateDynamicContent(dictionary)
-print(len(dictionary.query(source=lambda x: x is not None)))
+dictionary, clusters = GenerateDynamicContent(dictionary)
+# print(len(dictionary.query(source=lambda x: x is not None)))
 
 fulltext = GenerateFullText(dictionary)
 
@@ -57,10 +57,13 @@ def js_val(encoder, data):
 
 
 encoder = json.JSONEncoder(ensure_ascii=False)
-print(js_val(encoder, fulltext))
 
 
 f = open("output.json", 'w')
 f.write("content = ")
 f.write(js_val(encoder, fulltext))
+f.close()
+
+f = open("data.json", 'w')
+f.write(json.dumps(clusters))
 f.close()

@@ -1,3 +1,7 @@
+from pprint import pprint
+import textdistance
+
+
 def GenerateExplanations(dictionary):
     expls = dictionary.query(s_explanation=lambda x: x is not None)
     for entry in expls:
@@ -77,10 +81,49 @@ def GenerateSources(dictionary):
     return dictionary
 
 
+def GenerateCommonSourceClusters(dictionary):
+    css = dictionary.query(s_commonsource=lambda x: x is not None)
+    cs = {}
+    for e in css:
+        for scs in e.s_commonsource:
+            if scs not in cs:
+                cs[scs] = set()
+            cs[scs] = cs[scs].union(dictionary.query(source=lambda x: x is not None and scs in [a[1] for a in x]))
+
+    pprint(cs)
+
+    data = {}
+    data['nClusters'] = len(cs.keys())
+    data['entries'] = []
+
+    clid = 0
+
+    for cl in cs:
+        tmp = {
+            'cluster': clid,
+            'name': cl,
+            'level': 0,
+            'delta': 0
+        }
+        data['entries'].append(tmp)
+        for e in cs[cl]:
+            tmp = {
+                'cluster': clid,
+                'name': e.name,
+                'level': e.source[-1][2] + 1,
+                'delta': textdistance.hamming.normalized_distance(e.name, cl)
+            }
+            data['entries'].append(tmp)
+        clid += 1
+    pprint(data)
+    return data
+
+
 def GenerateDynamicContent(dictionary):
     dictionary = GenerateSameMeanings(dictionary)
     dictionary = GenerateCloseMeanings(dictionary)
     dictionary = GenerateUsage(dictionary)
     dictionary = GenerateExplanations(dictionary)
     dictionary = GenerateSources(dictionary)
-    return dictionary
+    clusters = GenerateCommonSourceClusters(dictionary)
+    return (dictionary, clusters)
