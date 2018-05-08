@@ -45,17 +45,23 @@ def GenerateUsage(dictionary):
 
 
 def GenerateSources(dictionary):
+
+    def minlen(entry):
+        a = len(entry.s_construction) if entry.s_construction else 0
+        b = len(entry.s_source) if entry.s_source else 0
+        return len(entry.s_construction)
+
     def recursiveref(names, level):
         result = []
         for name in names:
             entry = dictionary.get(name)
             if entry and entry.s_commonsource:
-                for i in range(len(entry.s_construction)):
+                for i in range(minlen(entry)):
                     temp = [entry.s_construction[i], entry.s_commonsource[i], level, True]
                     if temp[:2] not in [entry[:2] for entry in result]:
                         result.append(temp)
             elif entry and entry.s_source:
-                for i in range(len(entry.s_construction)):
+                for i in range(minlen(entry)):
                     temp = [entry.s_construction[i], entry.s_source[i], level, False]
                     if temp[:2] not in [entry[:2] for entry in result]:
                         result.append(temp)
@@ -65,14 +71,14 @@ def GenerateSources(dictionary):
     for index, entry in enumerate(dictionary.entries):
         if entry.s_source:
             entry.source = []
-            for i in range(len(entry.s_construction)):
+            for i in range(minlen(entry)):
                 temp = [entry.s_construction[i], entry.s_source[i], 0, False]
                 entry.source.append(temp)
             entry.source += recursiveref(entry.s_source, 1)
 
         elif entry.s_commonsource:
             entry.source = []
-            for i in range(len(entry.s_construction)):
+            for i in range(minlen(entry)):
                 temp = [entry.s_construction[i], entry.s_commonsource[i], 0, True]
                 entry.source.append(temp)
 
@@ -86,8 +92,9 @@ def GenerateCommonSourceClusters(dictionary):
     cs = {}
     for e in css:
         for scs in e.s_commonsource:
+            print(scs)
             if scs not in cs:
-                cs[scs] = set()
+                cs[scs] = set([e])
             cs[scs] = cs[scs].union(dictionary.query(source=lambda x: x is not None and scs in [a[1] for a in x]))
 
     pprint(cs)
@@ -107,15 +114,15 @@ def GenerateCommonSourceClusters(dictionary):
         }
         data['entries'].append(tmp)
         for e in cs[cl]:
-            tmp = {
-                'cluster': clid,
-                'name': e.name,
-                'level': e.source[-1][2] + 1,
-                'delta': textdistance.hamming.normalized_distance(e.name, cl)
-            }
-            data['entries'].append(tmp)
+            if len(e.source) > 0:
+                tmp = {
+                    'cluster': clid,
+                    'name': e.name,
+                    'level': e.source[-1][2] + 1,
+                    'delta': textdistance.hamming.normalized_distance(e.name, cl)
+                }
+                data['entries'].append(tmp)
         clid += 1
-    pprint(data)
     return data
 
 
@@ -126,4 +133,7 @@ def GenerateDynamicContent(dictionary):
     dictionary = GenerateExplanations(dictionary)
     dictionary = GenerateSources(dictionary)
     clusters = GenerateCommonSourceClusters(dictionary)
+
+    pprint(clusters)
+
     return (dictionary, clusters)
