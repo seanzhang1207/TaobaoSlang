@@ -1,9 +1,12 @@
 import random
+from Pinyin2Hanzi import DefaultHmmParams
+from Pinyin2Hanzi import viterbi
 
 
 leet = {
     'a': ['4', '@'],
     'b': ['6'],
+    'B': ['8'],
     'e': ['3', '€'],
     'g': ['9'],
     'i': ['1', '!'],
@@ -42,8 +45,22 @@ def leet_latin(s, n):
 def sepa_latin(s):
     sep = random.choice(separators)
     ind = random.randint(1, len(s)-1)
+    while s[ind - 1] != ' ' and s[ind - 1] != ' ':
+        ind = random.randint(1, len(s)-1)
+    if ' ' in s and random.random() < 0.7:
+        return s.replace(' ', sep)
     return s[:ind] + sep + s[ind:]
 
 
+def hanzi_latin(s):
+    pass
 
-print(sepa_latin(leet_latin("zara", 1)))
+
+
+
+
+
+print(sepa_latin(leet_latin("Banana Republic", 1)))
+result = viterbi(hmm_params=hmmparams, observations=('ni', 'zhi', 'bu', 'zhi', 'dao'), path_num = 2)
+for item in result:
+    print(item.score, item.path)
