@@ -1,6 +1,8 @@
 from pprint import pprint
 import textdistance
 
+from gen_new_words import GenerateMoreWords
+
 
 def GenerateExplanations(dictionary):
     expls = dictionary.query(s_explanation=lambda x: x is not None)
@@ -127,6 +129,8 @@ def GenerateCommonSourceClusters(dictionary):
 
 
 def GenerateDynamicContent(dictionary):
+    dictionary = GenerateMoreWords(dictionary)
+    print(len(dictionary.entries))
     dictionary = GenerateSameMeanings(dictionary)
     dictionary = GenerateCloseMeanings(dictionary)
     dictionary = GenerateUsage(dictionary)

@@ -53,10 +53,11 @@ class Dictionary:
     entries = []
 
     def add(self, entry):
-        self.entries.append(entry)
-        self.entries.sort(key=lambda x: latinhead(x.name))
-        for i, entry in enumerate(self.entries):
-            entry.id = i
+        if self.get(entry.name) is None:
+            self.entries.append(entry)
+            self.entries.sort(key=lambda x: latinhead(x.name))
+            for i, entry in enumerate(self.entries):
+                entry.id = i
 
     def query(self, **kwargs):
         results = set(self.entries)

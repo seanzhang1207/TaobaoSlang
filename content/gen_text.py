@@ -1,5 +1,6 @@
 from pypinyin import lazy_pinyin, Style
 from pprint import pprint
+import random
 
 
 def latin(word):
@@ -29,6 +30,8 @@ def GenerateEtymology(dictionary):
                     entry.etymology += "%s「%s」使用形近字替换而来；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
                 elif src[0] == "其他语言":
                     entry.etymology += "取自其他语言%s「%s」；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
+                elif src[0] == "其他":
+                    entry.etymology += "来自%s「%s」；" % ("%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
             entry.etymology = entry.etymology[:-1] + "。"
         else:
             entry.etymology = "暂无收录。"
@@ -43,7 +46,7 @@ def GenerateUsage(dictionary):
 
 def GenerateSameMeaning(dictionary):
     for entry in dictionary.entries:
-        entry.synonym = "；".join(entry.same)  if entry.same else "暂无收录。"
+        entry.synonym = "；".join(random.sample(entry.same, min(len(entry.same), 5)))  if entry.same else "暂无收录。"
     return dictionary
 
 
