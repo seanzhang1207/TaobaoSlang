@@ -1,0 +1,4 @@
+asdf = {
+    hello: "Hello, world!",
+    world: "World, hello!"
+};
