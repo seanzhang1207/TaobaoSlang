@@ -56,18 +56,30 @@ def GenerateCloseMeaning(dictionary):
 
 def GenerateIndex(dictionary):
     temp = {}
-    index = {}
+    tempindex = {}
+    index = []
     for entry in dictionary.entries:
         if not entry.name[0].upper() in temp:
             temp[entry.name[0].upper()] = []
         temp[entry.name[0].upper()].append(entry.id)
 
     for char in temp.keys():
-        if not first(char) in index:
-            index[first(char)] = {}
-        if not latin(char) in index[first(char)]:
-            index[first(char)][latin(char)] = []
-        index[first(char)][latin(char)].append([char, temp[char]])
+        if not first(char) in tempindex:
+            tempindex[first(char)] = {}
+        if not latin(char) in tempindex[first(char)]:
+            tempindex[first(char)][latin(char)] = []
+        tempindex[first(char)][latin(char)].append([char, temp[char]])
+
+    for initial in tempindex.keys():
+        index.append({
+            'initial': initial,
+            'pinyins': []
+        })
+        for pinyin in tempindex[initial].keys():
+            index[-1]['pinyins'].append({
+                'pinyin': pinyin,
+                'words': tempindex[initial][pinyin]
+            })
 
     # pprint(index)
     return index
