@@ -7,9 +7,20 @@ function main() {
 
     var doc = setupBaseDocument();
 
-    layoutIndex(doc, content.index);
+    myProgressPanel = new Window('window', 'Processing index...');
+    with(myProgressPanel){
+        myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, content.index.length);
+    }
+    myProgressPanel.show();
 
+    myProgressPanel.myProgressBar.value = 1;
+
+    layoutIndex(doc, content.index);
     layoutEntries(doc, content.index, content.entries);
+
+    generatePageNumbers(doc, content.index, content.entries)
+    generateSideboxes(doc, content.index, content.entries)
+
 }
 
 function loadJSON() {
@@ -50,6 +61,10 @@ function setupBaseDocument() {
         facingPages = true;
         pageOrientation = PageOrientation.portrait;
         pagesPerDocument = 1;
+        documentBleedBottomOffset = "5mm";
+        documentBleedTopOffset = "5mm";
+        documentBleedInsideOrLeftOffset = "5mm";
+        documentBleedOutsideOrRightOffset = "5mm";
     }
 
     with(myDocument.textDefaults){
@@ -295,6 +310,7 @@ function setupBaseDocument() {
 
 function layoutIndex(myDocument, indexData) {
     var page = myDocument.pages.item(0);
+    //indexLayer = myDocument.layers.add();
     txt = page.textFrames.add()
 
     with(txt) {
@@ -303,7 +319,7 @@ function layoutIndex(myDocument, indexData) {
         geometricBounds = ["44mm", "12mm", "133mm", "104mm"];
         tabPosition = 10;
 
-        tmp = ""
+        tmp = "\n"
         for (var i in indexData) {
             tmp += indexData[i].initial + "\r";
             for (var j in indexData[i].pinyins) {
@@ -312,15 +328,19 @@ function layoutIndex(myDocument, indexData) {
                 tmp += indexData[i].pinyins[j].words[0][0];
                 tmp += "\t";
                 tmp += "123\r";
-                /*
-
-                paragraphs.item(-1).justification = Justification.leftAlign;
-                paragraphs.item(-1).appliedFont = app.fonts.item("汉仪中宋S");
-                paragraphs.item(-1).pointSize = 8;
-                */
             }
+            myProgressPanel.myProgressBar.value = i;
+            myProgressPanel.update();
         }
         contents = tmp;
+
+        myProgressPanel.close()
+        myProgressPanel = new Window('window', 'Applying styles...');
+        with(myProgressPanel){
+            myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, parentStory.paragraphs.length);
+        }
+        myProgressPanel.show();
+        myProgressPanel.myProgressBar.value = 1;
 
         for (var i=0; i<parentStory.paragraphs.length; i++) {
             if (parentStory.paragraphs[i].length == 2) {
@@ -352,7 +372,8 @@ function layoutIndex(myDocument, indexData) {
                     })
                 }
             }
-
+            myProgressPanel.myProgressBar.value = i;
+            myProgressPanel.update();
         }
 
     }
@@ -368,7 +389,7 @@ function layoutIndex(myDocument, indexData) {
         with(newtxt) {
             textFramePreferences.textColumnCount = 4;
             textFramePreferences.textColumnGutter = "4mm";
-            bounds = getBounds(myDocument, page)
+            bounds = getBounds(myDocument, pg)
             bounds[0] += 7;
             geometricBounds = bounds;
 
@@ -383,6 +404,7 @@ function layoutIndex(myDocument, indexData) {
 function layoutEntries(myDocument, indexData, entryData) {
     var page = myDocument.pages.add();
     page.appliedMaster = myDocument.masterSpreads.item(2);
+    //entriesLayer = myDocument.layers.add();
     txt = page.textFrames.add();
 
     with(txt) {
@@ -393,110 +415,101 @@ function layoutEntries(myDocument, indexData, entryData) {
         geometricBounds = bounds;
         tabPosition = 10;
 
-        tmp = ""
-        for (var i in indexData) {
-            alert(indexData[i].initial)
-            tmp += indexData[i].initial + "\r";
-            /*
-            with (parentStory.paragraphs.item(-1)) {
-                justification = Justification.centerAlign;
-                appliedFont = app.fonts.item("汉仪中宋S");
-                pointSize = 14;
+        tmp = "\n";
 
-                spaceBefore = "2mm";
-                spaceAfter = "7mm";
-            }*/
+        styles = [];
+
+        myProgressPanel.close()
+        myProgressPanel = new Window('window', 'Processing entries...');
+        with(myProgressPanel){
+            myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, entryData.length);
+        }
+        myProgressPanel.show();
+        myProgressPanel.myProgressBar.value = 1;
+
+        for (var i in indexData) {
+            tmp += indexData[i].initial + "\r";
+            styles.push(0);
 
             for (var j in indexData[i].pinyins) {
                 tmp += indexData[i].pinyins[j].pinyin + "\r";
-                /*
-                with (parentStory.paragraphs.item(-1)) {
-                    justification = Justification.centerAlign;
-                    appliedFont = app.fonts.item("汉仪中宋S");
-                    pointSize = 11;
-
-                    spaceBefore = "2mm";
-                    spaceAfter = "5mm";
-                }*/
+                styles.push(1);
 
                 for (var k in indexData[i].pinyins[j].words) {
                     for (var l in indexData[i].pinyins[j].words[k][1]) {
                         entry = entryData[indexData[i].pinyins[j].words[k][1][l]];
                         tmp += entry.name + "\r";
-                        /*
-                        with (parentStory.paragraphs.item(-1)) {
-                            justification = Justification.leftAlign;
-                            appliedFont = app.fonts.item("汉仪中宋S");
-                            pointSize = 12;
+                        styles.push(2);
 
-                            spaceBefore = 0;
-                            spaceAfter = 0;
-                        }
-                        */
-                        if (entry.pinyin.length > 0) {
-                            parentStory.contents += entry.pinyin + "\r";
-                            /*
-                            with (parentStory.paragraphs.item(-1)) {
-                                justification = Justification.leftAlign;
-                                appliedFont = app.fonts.item("汉仪中宋S");
-                                pointSize = 8;
+                        tmp += "【释义】" + entry.explanation + "\n" + "【词源】" + entry.etymology + "\n" + "【语用】" + entry.usage + "\n" + "【同义】" + entry.synonym + "\n\r";
+                        styles.push(3);
 
-                                spaceBefore = 0;
-                                spaceAfter = 0;
-                            }
-                            */
-                        }
-
-                        tmp += "【释义】" + entry.explanation + "\r" + "【词源】" + entry.etymology + "\r" + "【语用】" + entry.usage + "\r" + "【同义】" + entry.synonym + "\r\r";
+                        myProgressPanel.myProgressBar.value = entry.id;
+                        myProgressPanel.update();
                     }
                 }
-
-                /*
-
-                paragraphs.item(-1).justification = Justification.leftAlign;
-                paragraphs.item(-1).appliedFont = app.fonts.item("汉仪中宋S");
-                paragraphs.item(-1).pointSize = 8;
-                */
             }
+
         }
+
         parentStory.contents = tmp;
-        /*
-        contents = tmp;
 
-        for (var i=0; i<parentStory.paragraphs.length; i++) {
-            if (parentStory.paragraphs[i].length == 2) {
-                with (parentStory.paragraphs[i]) {
-                    justification = Justification.centerAlign;
-                    appliedFont = app.fonts.item("汉仪中宋S");
-                    pointSize = 10;
+        myProgressPanel.close()
+        myProgressPanel = new Window('window', 'Applying styles...');
+        with(myProgressPanel){
+            myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, parentStory.paragraphs.length);
+        }
+        myProgressPanel.show();
+        myProgressPanel.myProgressBar.value = 1;
 
-                    spaceBefore = "2mm";
-                    spaceAfter = "0.5mm";
-                }
-            } else {
-                with (parentStory.paragraphs[i]) {
-                    justification = Justification.leftAlign;
-                    appliedFont = app.fonts.item("汉仪中宋S");
-                    pointSize = 8;
-                    spaceBefore = 0;
-                    spaceAfter = 0;
+        for (var i=0; i < parentStory.paragraphs.length; i++) {
+            with (parentStory.paragraphs.item(i)) {
+                switch (styles[i]) {
+                    case 0:
+                        justification = Justification.centerAlign;
+                        appliedFont = app.fonts.item("汉仪中宋S");
+                        pointSize = 14;
+                        spaceBefore = "2mm";
+                        spaceAfter = "3mm";
+                        break;
 
-                    tabStops.add({
-                        alignment: TabStopAlignment.leftAlign,
-                        leader: "",
-                        position: tabPosition
-                    });
-                    tabStops.add({
-                        alignment: TabStopAlignment.rightAlign,
-                        leader: "",
-                        position: textFramePreferences.textColumnFixedWidth
-                    })
+                    case 1:
+                        justification = Justification.centerAlign;
+                        appliedFont = app.fonts.item("汉仪中宋S");
+                        pointSize = 11;
+                        spaceBefore = "2mm";
+                        spaceAfter = "3mm";
+                        break;
+
+                    case 2:
+                        justification = Justification.leftAlign;
+                        appliedFont = app.fonts.item("汉仪中宋S");
+                        pointSize = 12;
+                        spaceBefore = 0;
+                        spaceAfter = 0;
+                        break;
+
+                    case 3:
+                        justification = Justification.leftAlign;
+                        appliedFont = app.fonts.item("汉仪中宋S");
+                        pointSize = 8;
+                        spaceBefore = 0;
+                        spaceAfter = 0;
+                        break;
                 }
             }
-
+            myProgressPanel.myProgressBar.value = i;
+            myProgressPanel.update();
         }
-        */
     }
+
+    myProgressPanel.close()
+    myProgressPanel = new Window('window', 'Adding pages...');
+    with(myProgressPanel){
+        myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, entryData.length / 4.5 + 2);
+    }
+    myProgressPanel.show();
+    myProgressPanel.myProgressBar.value = 1;
 
     while (txt.overflows) {
         var pg = myDocument.pages.add();
@@ -516,5 +529,208 @@ function layoutEntries(myDocument, indexData, entryData) {
         }
 
         txt = newtxt;
+
+        myProgressPanel.myProgressBar.value = myDocument.pages.length;
+        myProgressPanel.update();
+    }
+
+}
+
+
+function generatePageNumbers(myDocument, indexData, entryData) {
+
+    myProgressPanel.close()
+    myProgressPanel = new Window('window', 'Recording page numbers...');
+    with(myProgressPanel){
+        myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, indexData.length);
+    }
+    myProgressPanel.show();
+    myProgressPanel.myProgressBar.value = 1;
+
+    tmp = ""
+    var pageNumber = 2;
+    for (var i in indexData) {
+        tmp += indexData[i].initial + "\r";
+        for (var j in indexData[i].pinyins) {
+            tmp += indexData[i].pinyins[j].pinyin;
+            tmp += "\t";
+            tmp += indexData[i].pinyins[j].words[0][0];
+            tmp += "\t";
+            while (true) {
+                var found = false;
+                with (myDocument.pages.item(pageNumber).textFrames.item(0)) {
+                    for (var k=0; k<paragraphs.length; k++) {
+                        var ind = indexData[i].pinyins[j].words[0][1][0];
+                        if (entryData[ind].name == paragraphs[k].contents.substring(0, paragraphs[k].contents.length - 1)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found) break;
+                pageNumber ++;
+            }
+            tmp += (pageNumber - 1).toString() + "\r";
+        }
+        myProgressPanel.myProgressBar.value = i;
+        myProgressPanel.update();
+    }
+
+    with (myDocument.pages.item(0).textFrames.item(0)) {
+
+        parentStory.contents = tmp;
+
+        myProgressPanel.close()
+        myProgressPanel = new Window('window', 'Applying styles...');
+        with(myProgressPanel){
+            myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, parentStory.paragraphs.length);
+        }
+        myProgressPanel.show();
+        myProgressPanel.myProgressBar.value = 1;
+
+        for (var i=0; i<parentStory.paragraphs.length; i++) {
+            if (parentStory.paragraphs[i].length == 2) {
+                with (parentStory.paragraphs[i]) {
+                    justification = Justification.centerAlign;
+                    appliedFont = app.fonts.item("汉仪中宋S");
+                    pointSize = 10;
+
+                    spaceBefore = "2mm";
+                    spaceAfter = "0.5mm";
+                }
+            } else {
+                with (parentStory.paragraphs[i]) {
+                    justification = Justification.leftAlign;
+                    appliedFont = app.fonts.item("汉仪中宋S");
+                    pointSize = 8;
+                    spaceBefore = 0;
+                    spaceAfter = 0;
+
+                    tabStops.add({
+                        alignment: TabStopAlignment.leftAlign,
+                        leader: "",
+                        position: tabPosition
+                    });
+                    tabStops.add({
+                        alignment: TabStopAlignment.rightAlign,
+                        leader: "",
+                        position: textFramePreferences.textColumnFixedWidth
+                    })
+                }
+            }
+            myProgressPanel.myProgressBar.value = i;
+            myProgressPanel.update();
+        }
+    }
+}
+
+
+function generateSideboxes(myDocument, indexData, entryData) {
+    var currentInitial = "";
+    var topDist = 0;
+
+    myProgressPanel.close()
+    myProgressPanel = new Window('window', 'Adding sideboxes...');
+    with(myProgressPanel){
+        myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, myDocument.pages.length);
+    }
+    myProgressPanel.show();
+    myProgressPanel.myProgressBar.value = 1;
+
+    for (var i = 2; i < myDocument.pages.length; i++) {
+
+        entryInitials = [];
+
+        with (myDocument.pages.item(i).textFrames.item(0)) {
+            for (var k=0; k<paragraphs.length; k++) {
+                if (paragraphs[k].contents.length == 2 && paragraphs[k].pointSize == 14) {
+                    currentInitial = paragraphs[k].contents.substring(0, 1);
+                    topDist ++;
+                    break;
+                }
+            }
+
+            for (var k=0; k<paragraphs.length; k++) {
+                if (paragraphs[k].pointSize == 12) {
+                    found = false;
+                    for (var l=0; l<entryInitials.length; l++) {
+                        if (entryInitials[l] == paragraphs[k].contents.substring(0, 1)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        entryInitials.push(paragraphs[k].contents.substring(0, 1))
+                    }
+                }
+            }
+        }
+
+        var myPageWidth = myDocument.documentPreferences.pageWidth;
+        var myPageHeight = myDocument.documentPreferences.pageHeight;
+        if(myDocument.pages.item(i).side == PageSideOptions.rightHand){
+            var myX1 = myPageWidth - 4.5;
+            var myX2 = myPageWidth + 5;
+            var myY1 = 10 + topDist * 4;
+            var myY2 = 10 + topDist * 4 + 4;
+
+            myDocument.pages.item(i).rectangles.add({
+                geometricBounds: [myY1, myX1, myY2, myX2],
+                fillColor: "Black",
+                fillTint: 20,
+                strokeTint: 0
+            })
+
+            myX1 = myPageWidth - 3.5;
+            myX2 = myPageWidth;
+            myY1 = 10 + topDist * 4;
+            myY2 = 10 + topDist * 4 + 4;
+
+            txt = myDocument.pages.item(i).textFrames.add({
+                geometricBounds: [myY1, myX1, myY2, myX2]
+            })
+
+            txt.contents = currentInitial;
+            txt.paragraphs.item(0).pointSize = 9;
+            txt.paragraphs.item(0).justification = Justification.leftAlign;
+        }
+
+        entryInitialText = entryInitials.join("");
+
+        if(myDocument.pages.item(i).side == PageSideOptions.leftHand){
+            myX1 = 14;
+            myX2 = 98;
+            myY1 = 6;
+            myY2 = 10;
+
+            txt = myDocument.pages.item(i).textFrames.add({
+                geometricBounds: [myY1, myX1, myY2, myX2],
+                contents: entryInitialText
+            })
+
+            with (txt) {
+                paragraphs.item(0).pointSize = 8;
+                paragraphs.item(0).justification = Justification.leftAlign;
+            }
+        } else {
+            myX1 = 12;
+            myX2 = 96;
+            myY1 = 6;
+            myY2 = 10;
+
+            txt = myDocument.pages.item(i).textFrames.add({
+                geometricBounds: [myY1, myX1, myY2, myX2],
+                contents: entryInitialText
+            })
+
+            with (txt) {
+                paragraphs.item(0).pointSize = 8;
+                paragraphs.item(0).justification = Justification.rightAlign;
+            }
+
+        }
+
+        myProgressPanel.myProgressBar.value = i;
+        myProgressPanel.update();
     }
 }

@@ -129,7 +129,7 @@ def GenerateCommonSourceClusters(dictionary):
 
 
 def GenerateDynamicContent(dictionary):
-    dictionary = GenerateMoreWords(dictionary)
+    # dictionary = GenerateMoreWords(dictionary)
     print(len(dictionary.entries))
     dictionary = GenerateSameMeanings(dictionary)
     dictionary = GenerateCloseMeanings(dictionary)

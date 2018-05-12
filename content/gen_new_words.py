@@ -116,11 +116,14 @@ def mutate(word, forcefirst=False):
         results.add(word[0] + "牌")
         if ' ' in word:
             results.add(''.join([sw[0] for sw in word.split(' ')]).upper())
-
+        if len(word) > 3:
+            results.add(word[1:])
     else:
         for i in range(5):
             w = pinyin_hans(word, random.randint(1, 2), forcefirst)
             results.add(w)
+        if len(word) > 3:
+            results.add(word[1:])
         # w = samepinyin_hans(word, 1, forcefirst)
         # results.add(w)
 
@@ -131,7 +134,8 @@ def GenerateMoreWords(dictionary):
     entries = copy(dictionary.entries)
     for i, entry in enumerate(entries):
         print(i, '/', len(entries))
-        mutations = mutate(entry.name).union(mutate(entry.name, forcefirst=True))
+        # mutations = mutate(entry.name).union(mutate(entry.name, forcefirst=True))
+        mutations = mutate(entry.name, forcefirst=True)
         for name in mutations:
             e = deepcopy(entry)
             e.name = name
