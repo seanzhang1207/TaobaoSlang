@@ -4,6 +4,7 @@ function main() {
     app.scriptPreferences.userInteractionLevel = UserInteractionLevels.interactWithAll;
 
     var content = loadJSON();
+    var images = loadImages();
 
     var doc = setupBaseDocument();
 
@@ -21,6 +22,17 @@ function main() {
     generatePageNumbers(doc, content.index, content.entries)
     generateSideboxes(doc, content.index, content.entries)
 
+}
+
+
+function loadImages() {
+    var selFolder = "/Users/sean/Desktop Workspaces/向淘宝学习/TaobaoSlang/layout/"
+
+    if (File.fs == "Windows")
+        imgFiles = Folder(selFolder).openDlg( 'Load JSON document', "JSON:*.json,All files:*.*", false);
+    else
+        imgFiles = Folder(selFolder).openDlg( 'Load JSON document', function(file) { return file instanceof Folder || (!(file.hidden) && (file.name.match(/\.jpg/i) || file.type == "JPG ")); }, true );
+    return imgFiles;
 }
 
 function loadJSON() {
@@ -379,7 +391,7 @@ function layoutIndex(myDocument, indexData) {
     }
 
     while (txt.overflows) {
-        var pg = myDocument.pages.add();
+        pg = myDocument.pages.add();
         newtxt = pg.textFrames.add()
 
         with(pg) {
@@ -398,6 +410,7 @@ function layoutIndex(myDocument, indexData) {
 
         txt = newtxt;
     }
+    //pg.remove()
 }
 
 
@@ -415,9 +428,9 @@ function layoutEntries(myDocument, indexData, entryData) {
         geometricBounds = bounds;
         tabPosition = 10;
 
-        tmp = "\n";
+        tmp = "\r";
 
-        styles = [];
+        styles = [3];
 
         myProgressPanel.close()
         myProgressPanel = new Window('window', 'Processing entries...');
@@ -506,7 +519,7 @@ function layoutEntries(myDocument, indexData, entryData) {
     myProgressPanel.close()
     myProgressPanel = new Window('window', 'Adding pages...');
     with(myProgressPanel){
-        myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, entryData.length / 4.5 + 2);
+        myProgressPanel.myProgressBar = add('progressbar', [12, 12, 480, 20], 0, 2000);
     }
     myProgressPanel.show();
     myProgressPanel.myProgressBar.value = 1;
@@ -533,7 +546,6 @@ function layoutEntries(myDocument, indexData, entryData) {
         myProgressPanel.myProgressBar.value = myDocument.pages.length;
         myProgressPanel.update();
     }
-
 }
 
 
@@ -644,6 +656,7 @@ function generateSideboxes(myDocument, indexData, entryData) {
         with (myDocument.pages.item(i).textFrames.item(0)) {
             for (var k=0; k<paragraphs.length; k++) {
                 if (paragraphs[k].contents.length == 2 && paragraphs[k].pointSize == 14) {
+
                     currentInitial = paragraphs[k].contents.substring(0, 1);
                     topDist ++;
                     break;
@@ -671,8 +684,8 @@ function generateSideboxes(myDocument, indexData, entryData) {
         if(myDocument.pages.item(i).side == PageSideOptions.rightHand){
             var myX1 = myPageWidth - 4.5;
             var myX2 = myPageWidth + 5;
-            var myY1 = 10 + topDist * 4;
-            var myY2 = 10 + topDist * 4 + 4;
+            var myY1 = 10 + topDist * 3;
+            var myY2 = 10 + topDist * 3 + 4;
 
             myDocument.pages.item(i).rectangles.add({
                 geometricBounds: [myY1, myX1, myY2, myX2],
@@ -683,14 +696,15 @@ function generateSideboxes(myDocument, indexData, entryData) {
 
             myX1 = myPageWidth - 3.5;
             myX2 = myPageWidth;
-            myY1 = 10 + topDist * 4;
-            myY2 = 10 + topDist * 4 + 4;
+            myY1 = 10 + topDist * 3;
+            myY2 = 10 + topDist * 3 + 4;
+
 
             txt = myDocument.pages.item(i).textFrames.add({
-                geometricBounds: [myY1, myX1, myY2, myX2]
+                geometricBounds: [myY1, myX1, myY2, myX2],
+                contents: currentInitial
             })
 
-            txt.contents = currentInitial;
             txt.paragraphs.item(0).pointSize = 9;
             txt.paragraphs.item(0).justification = Justification.leftAlign;
         }

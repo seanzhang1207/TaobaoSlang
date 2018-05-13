@@ -24,10 +24,18 @@ def GenerateEtymology(dictionary):
                     entry.etymology += "取自%s%s「%s」；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[0], src[1].replace('_', ' '))
                 elif src[0] == "功用":
                     entry.etymology += "取自功用「%s」；" % (src[1].replace('_', ' '))
+                elif src[0] == "内容":
+                    entry.etymology += "取自「%s」；" % (src[1].replace('_', ' '))
+                elif src[0] == "产地":
+                    entry.etymology += "取自产地「%s」；" % (src[1].replace('_', ' '))
                 elif src[0] == "分隔符":
                     entry.etymology += "%s「%s」加入分隔符而来；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
+                elif src[0] == "反转":
+                    entry.etymology += "%s「%s」词序反转而来；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
                 elif src[0] == "形近字":
                     entry.etymology += "%s「%s」使用形近字替换而来；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
+                elif src[0] == "特殊符号":
+                    entry.etymology += "%s「%s」使用特殊符号替换而来；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
                 elif src[0] == "其他语言":
                     entry.etymology += "取自其他语言%s「%s」；" % ("大众词汇" if src[3] else "%s级黑话词汇" % chsnum[ground - src[2]], src[1].replace('_', ' '))
                 elif src[0] == "其他":

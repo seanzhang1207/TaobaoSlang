@@ -1,12 +1,13 @@
 import random
-from Pinyin2Hanzi import DefaultHmmParams
-from Pinyin2Hanzi import viterbi
+from Pinyin2Hanzi import DefaultDagParams
+from Pinyin2Hanzi import dag
+
 from pypinyin import pinyin,lazy_pinyin
 import pypinyin
 from copy import copy, deepcopy
 
 
-hmmparams = DefaultHmmParams()
+dagparams = DefaultDagParams()
 
 leet = {
     'a': ['4', '@'],
@@ -31,14 +32,10 @@ separators = [
     '*',
     '|',
     '#',
-    '#######',
     ' ',
     ',',
     '\'',
     '1',
-    '**',
-    '***',
-    '######',
     '||'
 ]
 
@@ -84,25 +81,31 @@ def pinyin_hans(s, n, forcefirst=False):
     return s
 
 
-def samepinyin_hans(s, n, forcefirst=False):
-    if forcefirst:
-        if len(s) < 2:
-            return s
-        tmp = random.sample(s[1:], n)
-        for ind in tmp:
-            sm = samepinyin(ind)
-            if len(sm) > 0:
-                s = s.replace(ind, random.choice(sm))
-        sm = samepinyin(s[0])
-        if len(sm) > 0:
-            s = random.choice(samepinyin(s[0])) + s[1:]
+def samepinyin_hans(s, forcefirst=False):
+    result = dag(dagparams, lazy_pinyin(s), path_num=8)
+    rets = set()
+    if len(result) > 1:
+        i = 0
+        for r in result:
+            if "".join(r.path) != s:
+                rets.add("".join(r.path))
+                i += 1
+                if i > 15:
+                    break;
     else:
-        tmp = random.sample(range(len(s)), n)
-        for ind in tmp:
-            sm = samepinyin(s[ind])
-            if len(sm) > 0:
-                s = s.replace(s[ind], random.choice(sm))
-    return s
+        for char in random.choice(s):
+            result = dag(dagparams, lazy_pinyin(char), path_num=15)
+            for r in result:
+                a = s.replace(char, r.path[0])
+                if a != s:
+                    rets.add(a)
+        result = dag(dagparams, lazy_pinyin(s[0]), path_num=15)
+        for r in result:
+            a = s.replace(s[0], r.path[0])
+            if a != s:
+                rets.add(a)
+                return rets
+    return rets
 
 
 def mutate(word, forcefirst=False):
@@ -119,13 +122,13 @@ def mutate(word, forcefirst=False):
         if len(word) > 3:
             results.add(word[1:])
     else:
-        for i in range(5):
-            w = pinyin_hans(word, random.randint(1, 2), forcefirst)
+        for i in range(6):
+            w = pinyin_hans(word, 1, False)
             results.add(w)
-        if len(word) > 3:
+        if len(word) > 3 and random.random() < 2:
             results.add(word[1:])
-        # w = samepinyin_hans(word, 1, forcefirst)
-        # results.add(w)
+        ws = samepinyin_hans(word, forcefirst)
+        results = results.union(ws)
 
     return results
 
@@ -134,8 +137,10 @@ def GenerateMoreWords(dictionary):
     entries = copy(dictionary.entries)
     for i, entry in enumerate(entries):
         print(i, '/', len(entries))
-        # mutations = mutate(entry.name).union(mutate(entry.name, forcefirst=True))
-        mutations = mutate(entry.name, forcefirst=True)
+        mutations = mutate(entry.name).union(mutate(entry.name, forcefirst=True))
+        # mutations = mutate(entry.name, forcefirst=True)
+
+
         for name in mutations:
             e = deepcopy(entry)
             e.name = name
@@ -143,8 +148,8 @@ def GenerateMoreWords(dictionary):
             e.s_commonsource = None
             e.s_construction = ["其他"]
             dictionary.add(e)
-            if len(name) > 1:
-                for i in range(random.randint(1, 3)):
+            if len(name) > 3:
+                if random.random() < 0.3:
                     tw = separator_any(name)
                     e2 = deepcopy(e)
                     e2.name = tw
@@ -152,5 +157,5 @@ def GenerateMoreWords(dictionary):
                     e2.s_commonsource = None
                     e2.s_construction = ["其他"]
                     dictionary.add(e2)
-    print(len(dictionary.entries))
+        print(len(dictionary.entries))
     return dictionary

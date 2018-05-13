@@ -94,12 +94,10 @@ def GenerateCommonSourceClusters(dictionary):
     cs = {}
     for e in css:
         for scs in e.s_commonsource:
-            print(scs)
             if scs not in cs:
                 cs[scs] = set([e])
             cs[scs] = cs[scs].union(dictionary.query(source=lambda x: x is not None and scs in [a[1] for a in x]))
 
-    pprint(cs)
 
     data = {}
     data['nClusters'] = len(cs.keys())
@@ -129,7 +127,7 @@ def GenerateCommonSourceClusters(dictionary):
 
 
 def GenerateDynamicContent(dictionary):
-    # dictionary = GenerateMoreWords(dictionary)
+    dictionary = GenerateMoreWords(dictionary)
     print(len(dictionary.entries))
     dictionary = GenerateSameMeanings(dictionary)
     dictionary = GenerateCloseMeanings(dictionary)
@@ -138,6 +136,5 @@ def GenerateDynamicContent(dictionary):
     dictionary = GenerateSources(dictionary)
     clusters = GenerateCommonSourceClusters(dictionary)
 
-    pprint(clusters)
 
     return (dictionary, clusters)
